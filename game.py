@@ -105,7 +105,7 @@ class GoFishGame:
 
     def ai_turn(self):
         """Handles the AI's turn automatically with a slight delay."""
-        time.sleep(1.5)  # Add delay before AI makes a move
+        time.sleep(1.0)  # Add delay before AI makes a move
 
         # Ensure the current player is an AI before calling choose_request
         if isinstance(self.current_player, GoFishAI):
@@ -121,7 +121,7 @@ class GoFishGame:
             return
 
         print(f"{self.current_player.name} thinks... ")  # Simulate thinking time
-        time.sleep(1.5)  # Another slight pause before AI speaks
+        time.sleep(1.0)  # Another slight pause before AI speaks
         print(f"{self.current_player.name} asks {target.name} for {rank}s.")
 
         if target.has_rank(rank):
