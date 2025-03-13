@@ -1,18 +1,21 @@
 import random
 import time
-from player import Player, GoFishAI
+from player import Player, GoFishAI  # Import Player and GoFishAI classes
 
-# Standard 52-card deck (only ranks, ignoring suits)
-RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+# Standard 52-card deck (ranks and suits)
+RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king", "ace"]
+SUITS = ["hearts", "diamonds", "clubs", "spades"]
 
 
 class GoFishGame:
     """Main game engine: Human vs multiple AI players."""
 
     def __init__(self, num_ai_players):
-        self.deck = RANKS * 4  # Full deck (4 of each rank)
+        # Create a full deck of 52 cards (13 ranks × 4 suits)
+        self.deck = [f"{rank}_of_{suit}" for rank in RANKS for suit in SUITS]
         random.shuffle(self.deck)
-        self.human = Player("You")
+
+        self.human = Player("Player")
         self.ai_players = [GoFishAI(f"AI {i + 1}") for i in range(num_ai_players)]  # Create AI players
         self.players = [self.human] + self.ai_players  # All players in the game
         self.current_player = self.human  # Start with the human
@@ -32,57 +35,51 @@ class GoFishGame:
                 if self.deck:
                     player.receive_card(self.deck.pop())
 
-    def play_turn(self):
-        """Handles the turn for the current player (Human or AI)."""
-        if self.check_winner():  # Check if the game should end before the turn starts
-            self.end_game()
-            return
+    def display_game_state(self):
+        """Displays the current state of the game."""
+        print("\n=== Current Game State ===")
+        print(f"Your hand: {', '.join(self.human.hand)}")
+        print(f"Your books: {', '.join(self.human.books) if self.human.books else 'None'}")
+        print(f"Cards remaining in deck: {len(self.deck)}")
+        print("-------------------------")
 
-        print(f"\n{self.current_player.name}'s turn...")
-
-        if not self.current_player.hand:
-            print(f"{self.current_player.name} has no cards left and skips this turn.")
-            self.next_turn()
-            return
-
-        if self.current_player == self.human:
-            self.human_turn()
-        else:
-            self.ai_turn()
-
-        self.display_score()  # Show score after every turn!
+    def display_score(self):
+        """Displays the current book count for all players."""
+        print("\n📊 Score Update:")
+        for player in self.players:
+            print(f"{player.name}: {len(player.books)} books")
 
     def human_turn(self):
         """Handles the human player's turn."""
-        print(f"Your hand: {self.human.hand}")
-        rank = input("Choose a rank to ask for: ").strip()
+        self.display_game_state()
+        print("\n=== Your Turn ===")
 
-        if rank not in self.human.hand:
+        # Ask for a rank
+        rank = input("Choose a rank to ask for: ").strip().upper()
+        while rank not in self.human.hand:
             print("You can only ask for a rank that you have!")
-            return self.human_turn()  # Ask again
+            rank = input("Choose a rank to ask for: ").strip().upper()
 
-        # Prompt for AI player selection
-        target_name = input(
-            f"Which AI player do you want to ask? ({', '.join(ai.name for ai in self.ai_players)}): ").strip()
-
-        # Handle input: AI name (e.g., "AI 3") or number (e.g., "3")
-        if target_name.isdigit():
-            target_number = int(target_name)
+        # Ask for a target AI player
+        print(f"Available AI players: {', '.join(ai.name for ai in self.ai_players)}")
+        target_input = input("Which AI player do you want to ask? (Enter name or number): ").strip()
+        if target_input.isdigit():
+            target_number = int(target_input)
             if 1 <= target_number <= len(self.ai_players):
                 target_name = f"AI {target_number}"
             else:
                 print(f"Invalid AI number. Please enter a number between 1 and {len(self.ai_players)}.")
                 return self.human_turn()
         else:
-            target_name = target_name
+            target_name = target_input
 
         # Find the target AI player
         target = next((ai for ai in self.ai_players if ai.name == target_name), None)
-
         if not target:
             print(f"Invalid AI player: {target_name}. Try again.")
             return self.human_turn()
 
+        # Ask the target for the rank
         if target.has_rank(rank):
             print(f"{target.name} gives you all {rank}s!")
             received_cards = target.give_cards(rank)
@@ -101,13 +98,11 @@ class GoFishGame:
             if ai != self.human:
                 ai.update_request_history(rank, self.human.name, target.has_rank(rank))
 
-        self.next_turn()
-
     def ai_turn(self):
         """Handles the AI's turn automatically with a slight delay."""
+        print(f"\n=== {self.current_player.name}'s Turn ===")
         time.sleep(1.5)  # Add delay before AI makes a move
 
-        # Ensure the current player is an AI before calling choose_request
         if isinstance(self.current_player, GoFishAI):
             rank, target = self.current_player.choose_request(self.players)
         else:
@@ -145,6 +140,25 @@ class GoFishGame:
             if ai != self.current_player:
                 ai.update_request_history(rank, target.name, target.has_rank(rank))
 
+    def play_turn(self):
+        """Handles the turn for the current player (Human or AI)."""
+        if self.check_winner():  # Check if the game should end before the turn starts
+            self.end_game()
+            return
+
+        print(f"\n=== {self.current_player.name}'s Turn ===")
+
+        if not self.current_player.hand:
+            print(f"{self.current_player.name} has no cards left and skips this turn.")
+            self.next_turn()
+            return
+
+        if self.current_player == self.human:
+            self.human_turn()
+        else:
+            self.ai_turn()
+
+        self.display_score()  # Show score after every turn!
         self.next_turn()
 
     def next_turn(self):
@@ -192,9 +206,3 @@ class GoFishGame:
             self.play_turn()
 
         self.end_game()  # Ensure the game ends properly
-
-    def display_score(self):
-        """Displays the current book count for all players."""
-        print("\n📊 Score Update:")
-        for player in self.players:
-            print(f"{player.name}: {len(player.books)} books")

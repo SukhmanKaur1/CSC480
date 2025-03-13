@@ -1,4 +1,5 @@
 from game import GoFishGame
+from gui import GoFishGUI
 
 
 def get_number_of_ai_players():
@@ -18,4 +19,5 @@ def get_number_of_ai_players():
 if __name__ == "__main__":
     num_ai_players = get_number_of_ai_players()
     game = GoFishGame(num_ai_players)
-    game.play_game()
+    gui = GoFishGUI(game)
+    gui.run()
