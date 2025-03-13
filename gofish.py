@@ -122,6 +122,9 @@ class GoFishGame:
         else:
             self.ai_turn()
 
+        self.display_score()  # 🔹 Add this here to show score after every turn!
+
+
     def human_turn(self):
         """Handles the human player's turn."""
         print(f"Your hand: {self.human.hand}")
@@ -202,19 +205,21 @@ class GoFishGame:
         return False
 
     def end_game(self):
-        """Handles end of game and announces winner."""
-        print("\n🎉 Game Over! 🎉")
-        print(f"You completed books: {self.human.books}")
-        print(f"AI completed books: {self.ai.books}")
+            """Handles end of game and announces winner."""
+            self.display_score()  # 🔹 Show the final score before announcing the winner
+            
+            print("\n🎉 Game Over! 🎉")
+            print(f"You completed books: {self.human.books}")
+            print(f"AI completed books: {self.ai.books}")
 
-        if len(self.human.books) > len(self.ai.books):
-            print("🎉 You win!")
-        elif len(self.human.books) < len(self.ai.books):
-            print("🤖 AI wins!")
-        else:
-            print("🤝 It's a tie!")
+            if len(self.human.books) > len(self.ai.books):
+                print("🎉 You win!")
+            elif len(self.human.books) < len(self.ai.books):
+                print("🤖 AI wins!")
+            else:
+                print("🤝 It's a tie!")
 
-        exit()  # Stop the game loop immediately
+            exit()  # Stop the game loop immediately
 
     def play_game(self):
         """Runs the full game loop."""
@@ -223,6 +228,11 @@ class GoFishGame:
             self.play_turn()
 
         self.end_game()  # Ensure the game ends properly
+
+    def display_score(self):
+        """Displays the current book count for both players."""
+        print(f"\n📊 Score Update: You - {len(self.human.books)} books | AI - {len(self.ai.books)} books")
+
 
 # Run the game
 if __name__ == "__main__":
